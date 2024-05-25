@@ -1,0 +1,18 @@
+project_name: go-cli-toolkit
+
+release:
+  github:
+    owner: jtcressy
+    name: go-cli-toolkit
+
+builds:
+- skip: true
+
+archives:
+- format: tar.gz
+  files:
+    - LICENSE
+    - README.md
+
+changelog:
+  sort: asc

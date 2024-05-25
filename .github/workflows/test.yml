@@ -1,0 +1,34 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  mod:
+    runs-on: ubuntu-latest
+    name: Check modules
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: actions/checkout@v4
+      - run: go mod tidy && git diff --exit-code go.mod go.sum
+  test:
+    runs-on: ubuntu-latest
+    name: Go test
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: actions/checkout@v4
+      - run: go vet ./...
+      - run: go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --randomize-suites --race --trace --fail-on-pending \
+          --keep-going --label-filter="!network" --cover --coverprofile=.coverage-report.out \
+            --coverpkg=github.com/${{ github.repository }} ./...
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: .coverage-report.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
