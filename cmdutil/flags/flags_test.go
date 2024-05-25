@@ -20,26 +20,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package flags_test
 
 import (
-	"errors"
-	"os"
+	"github.com/jtcressy/go-cli-toolkit/flags"
 
-	"github.com/lainio/err2"
-	"github.com/lainio/err2/try"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func main() {
-	defer err2.Catch(func(err error) error {
-		// Use this to catch and handle errors
-		os.Exit(1)
-		return nil
-	}, func(p any) {
-		// Use this to handle panics
-		os.Exit(1)
+var _ = Describe("FlagProxy", func() {
+	var (
+		flagProxy *flags.FlagProxy
+	)
+
+	BeforeEach(func() {
+		flagProxy = &flags.FlagProxy{
+			StringFn: func() string {
+				return "value"
+			},
+			SetFn: func(_ string) error {
+				return nil
+			},
+			TypeFn: func() string {
+				return "string"
+			},
+		}
 	})
 
-	// Do something that errors
-	try.To(func() error { return errors.New("something went wrong") }())
-}
+	Describe("String", func() {
+		It("should return the string representation of the value", func() {
+			Expect(flagProxy.String()).To(Equal("value"))
+		})
+	})
+
+	Describe("Set", func() {
+		It("should set the value from the string representation", func() {
+			err := flagProxy.Set("new value")
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Describe("Type", func() {
+		It("should return the type of the value", func() {
+			Expect(flagProxy.Type()).To(Equal("string"))
+		})
+	})
+})

@@ -20,26 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package cmdutil_test
 
 import (
-	"errors"
-	"os"
+	"github.com/jtcressy/go-cli-toolkit/cmdutil"
+	"github.com/spf13/cobra"
 
-	"github.com/lainio/err2"
-	"github.com/lainio/err2/try"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func main() {
-	defer err2.Catch(func(err error) error {
-		// Use this to catch and handle errors
-		os.Exit(1)
-		return nil
-	}, func(p any) {
-		// Use this to handle panics
-		os.Exit(1)
-	})
+var _ = Describe("CobraCMDErr2HandlerAnnotation", func() {
+	It("should return the correct handler annotation", func() {
+		cmd := &cobra.Command{
+			Use:   "root",
+			Short: "Root command",
+		}
 
-	// Do something that errors
-	try.To(func() error { return errors.New("something went wrong") }())
-}
+		subCmd := &cobra.Command{
+			Use:   "sub",
+			Short: "Sub command",
+		}
+
+		cmd.AddCommand(subCmd)
+
+		Expect(cmdutil.CobraCMDErr2HandlerAnnotation(cmd)).To(Equal("root"))
+		Expect(cmdutil.CobraCMDErr2HandlerAnnotation(subCmd)).To(Equal("root sub"))
+	})
+})

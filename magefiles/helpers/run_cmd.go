@@ -20,26 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package helpers
 
 import (
-	"errors"
-	"os"
-
-	"github.com/lainio/err2"
-	"github.com/lainio/err2/try"
+	"github.com/magefile/mage/sh"
 )
 
-func main() {
-	defer err2.Catch(func(err error) error {
-		// Use this to catch and handle errors
-		os.Exit(1)
-		return nil
-	}, func(p any) {
-		// Use this to handle panics
-		os.Exit(1)
-	})
+func GoRunV(module string, args ...string) error {
+	return sh.RunV("go", append([]string{"run", module}, args...)...)
+}
 
-	// Do something that errors
-	try.To(func() error { return errors.New("something went wrong") }())
+func GoRunCmdV(module string, args ...string) func(args ...string) error {
+	return func(args2 ...string) error {
+		return GoRunV(module, append(args, args2...)...)
+	}
+}
+
+// RunCmdV is a helper function that returns a function that runs the given
+// command with the given arguments.
+func RunCmdV(cmd string, args ...string) func(args ...string) error {
+	return func(args2 ...string) error {
+		return sh.RunV(cmd, append(args, args2...)...)
+	}
+}
+
+// RunOutput is a helper function that returns a function that runs the given
+// command with the given arguments and returns the output.
+func RunOutput(cmd string, args ...string) func(args ...string) (string, error) {
+	return func(args2 ...string) (string, error) {
+		return sh.Output(cmd, append(args, args2...)...)
+	}
 }
