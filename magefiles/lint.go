@@ -100,8 +100,30 @@ func GolangCiLintFix() error {
 
 // Run `golines`.
 func Golines() error {
-	return helpers.GoRunV("github.com/segmentio/golines",
-		"--reformat-tags", "--shorten-comments", "--write-output", "--max-len=99", "-l", "./.",
+	return helpers.GoRunV(
+		"github.com/segmentio/golines",
+		"--reformat-tags",
+		"--shorten-comments",
+		// "--chain-split-dots",
+		"--ignore-generated",
+		"--write-output",
+		"--max-len=99",
+		"./.",
+	)
+}
+
+// Run `golines -l`.
+func GolinesCheck() error {
+	return helpers.GoRunV(
+		"github.com/segmentio/golines",
+		"--reformat-tags",
+		"--shorten-comments",
+		// "--chain-split-dots",
+		"--ignore-generated",
+		"--write-output",
+		"--max-len=99",
+		"-l",
+		"./.",
 	)
 }
 
