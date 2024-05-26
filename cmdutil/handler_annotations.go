@@ -20,26 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package cmdutil
 
-import (
-	"errors"
-	"os"
+import "github.com/spf13/cobra"
 
-	"github.com/lainio/err2"
-	"github.com/lainio/err2/try"
-)
-
-func main() {
-	defer err2.Catch(func(err error) error {
-		// Use this to catch and handle errors
-		os.Exit(1)
-		return nil
-	}, func(p any) {
-		// Use this to handle panics
-		os.Exit(1)
+func CobraCMDErr2HandlerAnnotation(cmd *cobra.Command) (s string) {
+	s = cmd.Name()
+	cmd.VisitParents(func(c *cobra.Command) {
+		s = c.Name() + " " + s
 	})
-
-	// Do something that errors
-	try.To(func() error { return errors.New("something went wrong") }())
+	return s
 }

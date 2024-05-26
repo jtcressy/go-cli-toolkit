@@ -20,26 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+//go:build tools
+
+package tools
+
+//nolint
 
 import (
-	"errors"
-	"os"
-
-	"github.com/lainio/err2"
-	"github.com/lainio/err2/try"
+	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "github.com/google/addlicense"
+	_ "github.com/onsi/ginkgo/v2"
+	_ "github.com/segmentio/golines"
+	_ "github.com/vektra/mockery/v2"
 )
-
-func main() {
-	defer err2.Catch(func(err error) error {
-		// Use this to catch and handle errors
-		os.Exit(1)
-		return nil
-	}, func(p any) {
-		// Use this to handle panics
-		os.Exit(1)
-	})
-
-	// Do something that errors
-	try.To(func() error { return errors.New("something went wrong") }())
-}

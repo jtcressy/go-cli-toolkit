@@ -1,6 +1,11 @@
 name: test
 
-on: [push, pull_request]
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   mod:
@@ -11,7 +16,13 @@ jobs:
         with:
           go-version: stable
       - uses: actions/checkout@v4
-      - run: go mod tidy && git diff --exit-code go.mod go.sum
+      - run: |
+          for dir in $(find . -name go.mod -exec dirname {} \;); do
+            cd $dir
+            go mod tidy
+            git diff --exit-code go.mod go.sum
+            cd -
+          done
   test:
     runs-on: ubuntu-latest
     name: Go test
@@ -20,10 +31,9 @@ jobs:
         with:
           go-version: stable
       - uses: actions/checkout@v4
-      - run: go vet ./...
-      - run: go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --randomize-suites --race --trace --fail-on-pending \
-          --keep-going --label-filter="!network" --cover --coverprofile=.coverage-report.out \
-            --coverpkg=github.com/${{ github.repository }} ./...
+      - uses: magefile/mage-action@v3
+        with:
+          args: test:ci .coverage-report.out test-report.json junit-report.xml
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
@@ -32,3 +42,10 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
+        if: "!cancelled()"
+      - name: Test Summary
+        uses: test-summary/action@v1
+        with:
+          paths: |
+            junit-report.xml
+        if: "!cancelled()"
