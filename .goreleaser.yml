@@ -1,5 +1,8 @@
 project_name: go-cli-toolkit
 
+gomod:
+  proxy: true
+
 release:
   github:
     owner: jtcressy
@@ -16,3 +19,19 @@ archives:
 
 changelog:
   sort: asc
+  use: github
+  filters:
+    exclude:
+      - Merge Pull Request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 10
+    - title: "Other work"
+      order: 999
