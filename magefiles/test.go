@@ -24,59 +24,77 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/jtcressy/go-cli-toolkit/magefiles/helpers"
 	"github.com/jtcressy/go-cli-toolkit/magefiles/util"
+	"github.com/lainio/err2/try"
 	"github.com/magefile/mage/mg"
 )
 
+// Test mg.Namespace Environment Variables:
+//
+//   - TEST_PACKAGE_PATH: The package path to run tests on. Defaults to "./...".
+//   - TEST_COVERAGE_REPORT: The path to write the coverage report to.
+//   - TEST_JSON_REPORT: The path to write the JSON report to.
+//   - TEST_JUNIT_REPORT: The path to write the JUnit report to.
+//   - TEST_WATCH: Whether to watch for changes and re-run tests.
+//   - TEST_LABELS: The labels to filter tests by. Defaults to "unit".
 type Test mg.Namespace
 
-func (t Test) Unit(path string, cover bool) error {
-	fmt.Println("Running Unit tests...")
-	var coverageReport string
-	if cover {
-		coverageReport = "coverage.out"
-	}
+// Unit runs ginkgo tests with unit label.
+func (t Test) Unit() error {
 	return util.Ginkgo{}.Run(util.GinkgoOptions{
-		PackagePath:    path,
-		LabelFilter:    "!acceptance,!integration,!network,!performance",
-		CoverageReport: coverageReport,
+		LabelFilter:    "unit",
+		PackagePath:    helpers.GetEnv("TEST_PACKAGE_PATH", "./..."),
+		CoverageReport: helpers.GetEnv("TEST_COVERAGE_REPORT", ""),
+		JSONReport:     helpers.GetEnv("TEST_JSON_REPORT", ""),
+		JunitReport:    helpers.GetEnv("TEST_JUNIT_REPORT", ""),
+		Watch:          try.To1(strconv.ParseBool(helpers.GetEnv("TEST_WATCH", "false"))),
 	})
 }
 
-func (t Test) Watch(path string) error {
-	fmt.Println("Watching Unit tests...")
-	return util.Ginkgo{}.Run(util.GinkgoOptions{
-		PackagePath: path,
-		LabelFilter: "!acceptance,!integration,!network,!performance",
-		Watch:       true,
-	})
-}
-
-func (t Test) Acceptance(path string) error {
+// Acceptance runs ginkgo tests with acceptance label.
+func (t Test) Acceptance() error {
 	fmt.Println("Running Acceptance tests...")
 	return util.Ginkgo{}.Run(util.GinkgoOptions{
-		PackagePath: path,
-		LabelFilter: "acceptance",
+		LabelFilter:    "acceptance",
+		PackagePath:    helpers.GetEnv("TEST_PACKAGE_PATH", "./..."),
+		CoverageReport: helpers.GetEnv("TEST_COVERAGE_REPORT", ""),
+		JSONReport:     helpers.GetEnv("TEST_JSON_REPORT", ""),
+		JunitReport:    helpers.GetEnv("TEST_JUNIT_REPORT", ""),
+		Watch:          try.To1(strconv.ParseBool(helpers.GetEnv("TEST_WATCH", "false"))),
 	})
 }
 
-func (t Test) Integration(path string) error {
+// Integration runs ginkgo tests with integration label.
+func (t Test) Integration() error {
 	fmt.Println("Running Integration tests...")
 	return util.Ginkgo{}.Run(util.GinkgoOptions{
-		PackagePath: path,
-		LabelFilter: "integration",
+		LabelFilter:    "integration",
+		PackagePath:    helpers.GetEnv("TEST_PACKAGE_PATH", "./..."),
+		CoverageReport: helpers.GetEnv("TEST_COVERAGE_REPORT", ""),
+		JSONReport:     helpers.GetEnv("TEST_JSON_REPORT", ""),
+		JunitReport:    helpers.GetEnv("TEST_JUNIT_REPORT", ""),
+		Watch:          try.To1(strconv.ParseBool(helpers.GetEnv("TEST_WATCH", "false"))),
 	})
 }
 
-func (t Test) Performance(path string) error {
+// Performance runs ginkgo tests with performance label.
+func (t Test) Performance() error {
 	fmt.Println("Running Performance tests...")
 	return util.Ginkgo{}.Run(util.GinkgoOptions{
-		PackagePath: path,
-		LabelFilter: "performance",
+		LabelFilter:    "performance",
+		PackagePath:    helpers.GetEnv("TEST_PACKAGE_PATH", "./..."),
+		CoverageReport: helpers.GetEnv("TEST_COVERAGE_REPORT", ""),
+		JSONReport:     helpers.GetEnv("TEST_JSON_REPORT", ""),
+		JunitReport:    helpers.GetEnv("TEST_JUNIT_REPORT", ""),
+		Watch:          try.To1(strconv.ParseBool(helpers.GetEnv("TEST_WATCH", "false"))),
 	})
 }
 
+// Ci runs all ginkgo tests relevant for CI - usage: test:ci "<coverage report path>" "<json report
+// path>" "<junit report path>".
 func (t Test) Ci(coverageReport, jsonReport, junitReport string) error {
 	fmt.Println("Running CI tests...")
 	return util.Ginkgo{}.Run(util.GinkgoOptions{

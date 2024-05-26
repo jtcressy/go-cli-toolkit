@@ -23,25 +23,48 @@
 package printers
 
 import (
-	"io"
-
-	"gopkg.in/yaml.v3"
+	"github.com/samber/lo"
+	"github.com/spf13/cobra"
 )
 
-const (
-	YAMLIndentLevel = 4
-)
+var _ FlaggablePrinter = (*TableCSVPrinterFlags)(nil)
 
-var _ ObjectPrinter = (*YamlPrinter)(nil)
-
-type YamlPrinter struct{}
-
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
+type TableCSVPrinterFlags struct {
+	NoHeaders *bool
 }
 
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
+// AddFlags implements FlaggablePrinter.
+func (t *TableCSVPrinterFlags) AddFlags(cmd *cobra.Command) {
+	if t.NoHeaders != nil {
+		cmd.Flags().BoolVar(
+			t.NoHeaders,
+			"no-headers",
+			lo.FromPtrOr(t.NoHeaders, false),
+			"When using the default table output, don't print headers (default print headers).",
+		)
+	}
+}
+
+// AllowedFormats implements FlaggablePrinter.
+func (t *TableCSVPrinterFlags) AllowedFormats() []string {
+	return []string{"csv", "table"}
+}
+
+// ToPrinter implements FlaggablePrinter.
+func (t *TableCSVPrinterFlags) ToPrinter(format string) (ObjectPrinter, error) {
+	switch format {
+	case "csv":
+		return NewCSVPrinter(PrintOptions{
+			NoHeaders: lo.FromPtrOr(t.NoHeaders, false),
+		}), nil
+	case "table":
+		return NewTablePrinter(PrintOptions{
+			NoHeaders: lo.FromPtrOr(t.NoHeaders, false),
+		}), nil
+	default:
+		return nil, NoCompatiblePrinterError{
+			OutputFormat:   lo.ToPtr(format),
+			AllowedFormats: t.AllowedFormats(),
+		}
+	}
 }

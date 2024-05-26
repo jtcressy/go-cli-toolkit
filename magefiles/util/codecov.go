@@ -20,28 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package printers
+package util
 
 import (
-	"io"
-
-	"gopkg.in/yaml.v3"
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
-const (
-	YAMLIndentLevel = 4
-)
+type Codecov mg.Namespace
 
-var _ ObjectPrinter = (*YamlPrinter)(nil)
-
-type YamlPrinter struct{}
-
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
-}
-
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
+func (c Codecov) Validate() error {
+	return sh.RunV("curl", "--data-binary", "@codecov.yml", "https://codecov.io/validate")
 }

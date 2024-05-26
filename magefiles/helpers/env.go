@@ -20,28 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package printers
+package helpers
 
-import (
-	"io"
+import "os"
 
-	"gopkg.in/yaml.v3"
-)
-
-const (
-	YAMLIndentLevel = 4
-)
-
-var _ ObjectPrinter = (*YamlPrinter)(nil)
-
-type YamlPrinter struct{}
-
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
-}
-
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
+func GetEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }

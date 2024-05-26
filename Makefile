@@ -7,8 +7,9 @@
 
 # Helper rule to display available targets
 help:
-	@echo "This makefiel is an alias for Mage tasks. Run 'mage' to see available Mage targets."
+	@echo "This makefile is an alias for Mage tasks. Run 'mage' to see available Mage targets."
 	@echo "You can use 'make <target>' to call the corresponding 'mage <target>' command."
+	@mage -l
 
 # Required rule for gh action codeql to run.
 codeqlbuild:

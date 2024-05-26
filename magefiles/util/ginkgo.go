@@ -45,7 +45,7 @@ type GinkgoOptions struct {
 	Watch          bool
 }
 
-// Bootstrap bootstraps a ginkgo suite at the given path.
+// Bootstrap bootstraps a ginkgo suite at the given path - usage: util:ginkgo:bootstrap <path>.
 func (u Ginkgo) Bootstrap(path string) error {
 	fmt.Printf("Bootstrapping ginkgo suite (at %s)...\n", path)
 	return helpers.ExecuteInDirectory(path, func(_ ...string) error {
@@ -80,7 +80,7 @@ func (u Ginkgo) Run(opts GinkgoOptions) error {
 			args,
 			"--cover",
 			fmt.Sprintf("--coverprofile=%s", opts.CoverageReport),
-			fmt.Sprintf("--coverpkg=%s", opts.PackagePath),
+			"--coverpkg=",
 		)
 	}
 	if opts.JSONReport != "" {

@@ -20,31 +20,63 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package cmdutil_test
+package printers_test
 
 import (
-	"github.com/jtcressy/go-cli-toolkit/cmdutil"
-	"github.com/spf13/cobra"
+	"bytes"
+
+	"github.com/jtcressy/go-cli-toolkit/cmdutil/printers"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("CobraCMDErr2HandlerAnnotation", Label("unit"), func() {
-	It("should return the correct handler annotation", func() {
-		cmd := &cobra.Command{
-			Use:   "root",
-			Short: "Root command",
-		}
+var _ = Describe("CSVPrinter", Label("unit"), func() {
+	var (
+		printer printers.ObjectPrinter
+		buffer  *bytes.Buffer
+	)
 
-		subCmd := &cobra.Command{
-			Use:   "sub",
-			Short: "Sub command",
-		}
+	BeforeEach(func() {
+		printer = printers.NewCSVPrinter(printers.PrintOptions{})
+		buffer = &bytes.Buffer{}
+	})
 
-		cmd.AddCommand(subCmd)
+	Context("when printing an object", func() {
+		It("should print a single struct correctly", func() {
+			err := printer.PrintObj(struct {
+				Key   string
+				Value string
+			}{
+				Key:   "key",
+				Value: "value",
+			}, buffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("KEY,VALUE\nkey,value\n"))
+		})
 
-		Expect(cmdutil.CobraCMDErr2HandlerAnnotation(cmd)).To(Equal("root"))
-		Expect(cmdutil.CobraCMDErr2HandlerAnnotation(subCmd)).To(Equal("root sub"))
+		It("should print a struct slice correctly", func() {
+			err := printer.PrintObj([]struct {
+				Key   string
+				Value string
+			}{
+				{
+					Key:   "key1",
+					Value: "value1",
+				},
+				{
+					Key:   "key2",
+					Value: "value2",
+				},
+			}, buffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("KEY,VALUE\nkey1,value1\nkey2,value2\n"))
+		})
+
+		It("should not print an invalid object", func() {
+			err := printer.PrintObj(func() {}, buffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("\n"))
+		})
 	})
 })
