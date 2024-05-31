@@ -23,25 +23,36 @@
 package printers
 
 import (
+	"encoding/csv"
 	"io"
 
-	"gopkg.in/yaml.v3"
+	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
-const (
-	YAMLIndentLevel = 4
-)
+var _ ObjectPrinter = (*CSVPrinter)(nil)
 
-var _ ObjectPrinter = (*YamlPrinter)(nil)
-
-type YamlPrinter struct{}
-
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
+type CSVPrinter struct {
+	PrintOptions
+	TableReflectorFunc
 }
 
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
+func (p *CSVPrinter) PrintObj(a any, w io.Writer) (err error) {
+	defer err2.Handle(&err, nil)
+	enc := csv.NewWriter(w)
+	headers, rows := try.To2(p.TableReflectorFunc(a))
+	if !p.NoHeaders {
+		try.To(enc.Write(headers))
+	}
+	try.To(enc.WriteAll(rows))
+	enc.Flush()
+	return enc.Error()
+}
+
+func NewCSVPrinter(options PrintOptions) ObjectPrinter {
+	printer := &CSVPrinter{
+		PrintOptions:       options,
+		TableReflectorFunc: DefaultTableReflectorFunc,
+	}
+	return printer
 }

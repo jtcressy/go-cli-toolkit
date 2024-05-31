@@ -20,50 +20,54 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package flags_test
+package printers_test
 
 import (
-	"github.com/jtcressy/go-cli-toolkit/flags"
+	"bytes"
+
+	"github.com/jtcressy/go-cli-toolkit/cmdutil/printers"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("FlagProxy", Label("unit"), func() {
+var _ = Describe("YamlPrinter", Label("unit"), func() {
 	var (
-		flagProxy *flags.FlagProxy
+		printer printers.ObjectPrinter
+		buffer  *bytes.Buffer
 	)
 
 	BeforeEach(func() {
-		flagProxy = &flags.FlagProxy{
-			StringFn: func() string {
-				return "value"
-			},
-			SetFn: func(_ string) error {
-				return nil
-			},
-			TypeFn: func() string {
-				return "string"
-			},
-		}
+		printer = printers.NewYAMLPrinter()
+		buffer = &bytes.Buffer{}
 	})
 
-	Describe("String", func() {
-		It("should return the string representation of the value", func() {
-			Expect(flagProxy.String()).To(Equal("value"))
+	Context("when printing an object", func() {
+		It("should print a simple object correctly", func() {
+			err := printer.PrintObj(map[string]string{"key": "value"}, buffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("key: value\n"))
 		})
-	})
 
-	Describe("Set", func() {
-		It("should set the value from the string representation", func() {
-			err := flagProxy.Set("new value")
-			Expect(err).ToNot(HaveOccurred())
+		It("should print a complex object correctly", func() {
+			err := printer.PrintObj(
+				map[string]interface{}{"key": map[string]string{"nestedKey": "nestedValue"}},
+				buffer,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("key:\n    nestedKey: nestedValue\n"))
 		})
-	})
 
-	Describe("Type", func() {
-		It("should return the type of the value", func() {
-			Expect(flagProxy.Type()).To(Equal("string"))
+		It("should return an error when the object cannot be marshalled", func() {
+			defer func() {
+				if r := recover(); r != nil {
+					ExpectWithOffset(1, r).To(ContainSubstring("cannot marshal type: chan bool"))
+				} else {
+					Fail("expected panic")
+				}
+			}()
+			err := printer.PrintObj(make(chan bool), buffer)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

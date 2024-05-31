@@ -20,28 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package printers
+package printers_test
 
 import (
-	"io"
+	"testing"
 
-	"gopkg.in/yaml.v3"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-const (
-	YAMLIndentLevel = 4
-)
-
-var _ ObjectPrinter = (*YamlPrinter)(nil)
-
-type YamlPrinter struct{}
-
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
+func TestPrinters(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Printers Suite")
 }
 
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
-}
+var _ = BeforeSuite(func() {
+	lipgloss.SetColorProfile(termenv.Ascii)
+})

@@ -20,28 +20,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package printers
+package printers_test
 
 import (
-	"io"
+	"bytes"
 
-	"gopkg.in/yaml.v3"
+	"github.com/jtcressy/go-cli-toolkit/cmdutil/printers"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-const (
-	YAMLIndentLevel = 4
-)
+var _ = Describe("JSONPrinter", Label("unit"), func() {
+	var (
+		printer printers.ObjectPrinter
+		buffer  *bytes.Buffer
+	)
 
-var _ ObjectPrinter = (*YamlPrinter)(nil)
+	BeforeEach(func() {
+		printer = printers.NewJSONPrinter(true)
+		buffer = &bytes.Buffer{}
+	})
 
-type YamlPrinter struct{}
+	Context("when printing an object", func() {
+		It("should print a simple object correctly", func() {
+			err := printer.PrintObj(map[string]string{"key": "value"}, buffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(buffer.String()).To(Equal("{\n  \"key\": \"value\"\n}\n"))
+		})
 
-func (p *YamlPrinter) PrintObj(obj any, w io.Writer) error {
-	enc := yaml.NewEncoder(w)
-	enc.SetIndent(YAMLIndentLevel)
-	return enc.Encode(obj)
-}
+		It("should print a complex object correctly", func() {
+			err := printer.PrintObj(
+				map[string]interface{}{"key": map[string]string{"nestedKey": "nestedValue"}},
+				buffer,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(
+				buffer.String(),
+			).To(Equal("{\n  \"key\": {\n    \"nestedKey\": \"nestedValue\"\n  }\n}\n"))
+		})
 
-func NewYAMLPrinter() ObjectPrinter {
-	return &YamlPrinter{}
-}
+		It("should return an error when the object cannot be marshalled", func() {
+			err := printer.PrintObj(func() {}, buffer)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})

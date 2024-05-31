@@ -1,0 +1,19 @@
+codecov:
+  notify:
+    require_ci_to_pass: true
+    wait_for_ci: true
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+      patch:
+        target: auto
+        threshold: 1%
+      pull_request:
+        target: auto
+        threshold: 1%
